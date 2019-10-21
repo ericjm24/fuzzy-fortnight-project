@@ -48,6 +48,10 @@ class twitterGraph():
         return None
 
     def getFollowers(self, user):
+        if type(user)==int:
+            user = self.getUser(user)
+        if user is None:
+            return None
         if user["followers"] == 0:
             return []
         with open(self._followersFileName, "r") as file:
@@ -58,6 +62,10 @@ class twitterGraph():
         return out
 
     def getFriends(self, user):
+        if type(user)==int:
+            user = self.getUser(user)
+        if user is None:
+            return None
         if user["friends"]==0:
             return []
         with open(self._friendsFileName, "r") as file:
