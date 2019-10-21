@@ -51,6 +51,52 @@ function readFriends(user::twitterID)
     return output
 end
 
+function findUser(id::UInt32, userArray::Vector{twitterID})
+    kStart = 1
+    kEnd = length(userArray)
+    if userArray[kStart].id == id
+        return userArray[kStart]
+    end
+    if userArray[kEnd].id == id
+        return userArray[kEnd]
+    end
+    n = 1
+    while n < 10000
+        kTemp = Int64(floor((kStart + kEnd)/2))
+        if userArray[kTemp].id == id
+            return userArray[kTemp]
+        elseif kTemp==kStart
+            return nothing
+        elseif userArray[kTemp].id < id
+            kStart = kTemp
+        else
+            kEnd = kTemp
+        end
+        n += 1
+    end
+    return nothing
+end
+
+function randomStep(user::twitterID, userArray::Vector{twitterID})
+    x = rand(1:3)
+    if x == 1
+        return user
+    elseif x == 2
+        return findUser(rand(readFriends(user)), userArray)
+    else
+        return findUser(rand(readFollowers(user)), userArray)
+    end
+end
+
+function randomWalk(startUser::twitterID, numSteps::Int64,userArray::Vector{twitterID})
+    out =  Vector{twitterID}(undef, numSteps+1)
+    out[1] = startUser
+    for k = 1:numSteps
+        out[k+1] = randomStep(out[k], userArray)
+    end
+    return out
+end
+
 function writeIndexFile(filename, out::Vector{twitterID})
     out32 = Vector{UInt32}(undef, Int64(7*length(out)))
     for k = 1:length(out)

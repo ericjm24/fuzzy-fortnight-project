@@ -77,3 +77,27 @@ class twitterGraph():
 
     def getRandomUser(self):
         return self.userData[randint(1,self.numUsers)-1]
+
+    def randomStep(self, user):
+        if type(user)==int
+        user = self.getUser(user)
+        if user is None:
+            return None
+        x = randint(1,3)
+        if x == 1:
+            return (user,x)
+        elif x==2:
+            y = randint(1, user["friends"])
+            return (self.getFriends(user)[y],x)
+        else:
+            y = randint(1,user["followers"])
+            return (self.getFollowers(user)[y],x)
+
+    def randomWalk(self, startUser, numSteps=50):
+        steps = [0]
+        users = [startUser]
+        for k in range(1:numSteps):
+            us, x = self.randomStep(users[-1])
+            steps.append(x)
+            users.append(us)
+        return (users, steps)
