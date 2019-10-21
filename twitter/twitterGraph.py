@@ -1,4 +1,5 @@
 import numpy as np
+from random import randint
 indexFileName = "data/twitter_index"
 friendsFileName = "data/friends_small"
 followersFileName = "data/followers_small"
@@ -54,3 +55,6 @@ class twitterGraph():
             out = np.fromfile(file, np.uint32, count=user["friends"])
             assert np.fromfile(file, np.uint32, count=1)[0] == 0
         return out
+
+    def getRandomUser(self):
+        return self.userData[randint(1,self.numUsers)-1]
