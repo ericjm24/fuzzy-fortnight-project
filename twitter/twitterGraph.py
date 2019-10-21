@@ -100,4 +100,6 @@ class twitterGraph():
             us, x = self.randomStep(users[-1])
             steps.append(x)
             users.append(us)
+            if us is None:
+                break
         return (users, steps)
