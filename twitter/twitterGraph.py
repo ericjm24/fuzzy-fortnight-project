@@ -1,5 +1,6 @@
 import numpy as np
 from random import randint
+from math import floor
 indexFileName = "data/twitter_index"
 friendsFileName = "data/friends_small"
 followersFileName = "data/followers_small"
@@ -24,17 +25,27 @@ class twitterGraph():
         self._followersFileName = followersFileName
         self.userIDs = [int(x["id"]) for x in self.userData]
 
-    def search(self, id):
-        if type(id) == int:
-            id = [id]
+    def getUser(self, id):
+        kStart = 0
+        kEnd = self.numUsers - 1
+        if self.userIDs[0] == id:
+            return self.userData[0]
+        if self.userIDs[kEnd] == id:
+            return self.userData[kEnd]
 
-        if type(id) != list:
-            return []
-
-        out = []
-        for x in id:
-            kStart = 0
-            kEnd = self.numUsers - 1
+        n = 1
+        while n < 10000:
+            kTemp = floor((kStart+kEnd)/2)
+            if self.userIDs[kTemp] == id:
+                return self.userData[kTemp]
+            elif kTemp == kStart:
+                return None
+            elif self.userIDs[kTemp] > id:
+                kEnd = kTemp
+            else:
+                kStart = kTemp
+            n += 1
+        return None
 
     def getFollowers(self, user):
         if user["followers"] == 0:
