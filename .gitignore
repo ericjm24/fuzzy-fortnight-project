@@ -4,3 +4,4 @@
 *.net
 */data/*
 *.ipynb_checkpoints
+*.pem
