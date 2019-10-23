@@ -48,12 +48,14 @@ while True:
         continue
 
     friends = []
-    for page in limit_handles(tweepy.Cursor(api.friends_ids, user_id = user.id).pages()):
-        friends += page
+    if user.friends_count <= 50000:
+        for page in limit_handles(tweepy.Cursor(api.friends_ids, user_id = user.id).pages()):
+            friends += page
 
     followers = []
-    for page in limit_handled(tweepy.Cursor(api.followers_ids, user_id = user.id).pages()):
-        followers += page
+    if user.followers_count <= 50000:
+        for page in limit_handled(tweepy.Cursor(api.followers_ids, user_id = user.id).pages()):
+            followers += page
 
     out = {
         "userID":{"N":user.id_str},
@@ -63,8 +65,12 @@ while True:
         "description":{"S":user.description},
         "friends_count":{"N":str(user.friends_count)},
         "followers_count":{"N":str(user.followers_count)},
-        "friends_ids":{"NS":[str(y) for y in friends]},
-        "followers_ids":{"NS":[str(y) for y in followers_ids]}
     }
+    if len(friends) >= 1:
+        out["friends"] = {"NS":[str(y) for y in friends]}
+
+    if len(followers) >= 1:
+        out["followers"] = {"NS":[str(y) for y in followers]}
     client.put_item(TableName="currentTwitter", Item=out)
+    print(user.id_str + '\n')
     has_data.append(user.id)
