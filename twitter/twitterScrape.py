@@ -5,6 +5,9 @@ import boto3
 from random import randint
 import time
 
+auth = auth = tweepy.AppAuthHandler(tw_key, tw_secret)
+api = tweepy.API(auth)
+
 twitterID = np.dtype([
     ("id", np.uint32),
     ("followers", np.uint32),
@@ -33,6 +36,7 @@ def limit_handled(cursor):
         try:
             yield cursor.next()
         except tweepy.RateLimitError:
+            print("Hit rate limit. Waiting...\n")
             time.sleep(15 * 60)
 
 while True:
@@ -41,36 +45,45 @@ while True:
     if user["id"] in has_data:
         continue
 
+    print("Trying user " + str(user["id"]) + "\n")
     try:
         user = api.get_user(user_id=user["id"])
     except:
-        time.sleep(60)
         continue
 
-    friends = []
-    if user.friends_count <= 50000:
-        for page in limit_handles(tweepy.Cursor(api.friends_ids, user_id = user.id).pages()):
-            friends += page
+    try:
+        friends = []
+        if user.friends_count <= 50000:
+            for page in tweepy.Cursor(api.friends_ids, user_id = user.id).pages():
+                friends += page
 
-    followers = []
-    if user.followers_count <= 50000:
-        for page in limit_handled(tweepy.Cursor(api.followers_ids, user_id = user.id).pages()):
-            followers += page
+        followers = []
+        if user.followers_count <= 50000:
+            for page in tweepy.Cursor(api.followers_ids, user_id = user.id).pages():
+                followers += page
 
-    out = {
-        "userID":{"N":user.id_str},
-        "location":{"S":user.location},
-        "name":{"S":user.name},
-        "screenname":{"S":user.screen_name},
-        "description":{"S":user.description},
-        "friends_count":{"N":str(user.friends_count)},
-        "followers_count":{"N":str(user.followers_count)},
-    }
-    if len(friends) >= 1:
-        out["friends"] = {"NS":[str(y) for y in friends]}
+        out = {
+            "userID":{"N":user.id_str},
+            "friends_count":{"N":str(user.friends_count)},
+            "followers_count":{"N":str(user.followers_count)},
+        }
+        if user.location:
+            out["location"] = {"S":user.location}
+        if user.name:
+            out["name"] = {"S":user.name}
+        if user.screen_name:
+            out["screenname"] = {"S":user.screen_name}
+        if user.description:
+            out["description"] = {"S":user.description}
+        if len(friends) >= 1:
+            out["friends"] = {"NS":[str(y) for y in friends]}
 
-    if len(followers) >= 1:
-        out["followers"] = {"NS":[str(y) for y in followers]}
-    client.put_item(TableName="currentTwitter", Item=out)
-    print(user.id_str + '\n')
-    has_data.append(user.id)
+        if len(followers) >= 1:
+            out["followers"] = {"NS":[str(y) for y in followers]}
+
+        print(out)
+        response = client.put_item(TableName="currentTwitter", Item=out)
+        print(response)
+        has_data.append(user.id)
+    except:
+        time.sleep(300)
