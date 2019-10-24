@@ -31,6 +31,7 @@ let butt = document.getElementById("doit");
 let centerPos = {x:300, y:300}
 
 let buildGraph = function(data){
+    console.log(data);
     cy.remove(cy.nodes());
     let mainNode = {group:'nodes', data:{id:data.userID}, position:centerPos};
     cy.add([mainNode]);
