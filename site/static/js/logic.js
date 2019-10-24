@@ -23,5 +23,37 @@ let testEdges = [
     {group:'edges', data:{id:'e10', source:'n4', target:'n5'}},
 ];
 
-let nod = cy.add(testNodes);
-let ed = cy.add(testEdges);
+/*let nod = cy.add(testNodes);
+let ed = cy.add(testEdges);*/
+
+let butt = document.getElementById("doit");
+
+let centerPos = {x:300, y:300}
+
+let buildGraph = function(data){
+    cy.remove(cy.nodes());
+    let mainNode = {group:'nodes', data:{id:data.userID}, position:centerPos};
+    cy.add([mainNode]);
+    let sideNodes = data.connectionList.map(d=>{
+        let out = {
+            group:'nodes',
+            data:{id:d.userID},
+            position:{x:500*Math.random(),y:500*Math.random()}
+        };
+        return out
+    });
+    let edges = data.connectionList.map(d=>{
+        let out = {
+            group : 'edges',
+            data: {source:data.userID, target:d.userID},
+            width:d.weight
+        };
+        return out
+    });
+    cy.add(sideNodes);
+    cy.add(edges);
+}
+
+butt.onclick = function(){
+    d3.json("user/75").then(data=>buildGraph(data))
+};

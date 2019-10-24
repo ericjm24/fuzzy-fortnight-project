@@ -1,28 +1,37 @@
-import importlib.util
-spec = importlib.util.spec_from_file_location("twitterGraph", "../twitter/twitterGraph.py")
-tg = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(tg)
-graph = tg.twitterGraph()
+import json
+from random import randint
 
-from flask import Flask, jsonify
+cacheFile = "data/cacheFile"
+
+
+try:
+    with open(cacheFile, "r") as file:
+        cache = json.load(file)
+        congress = list(cache.keys())
+except:
+    raise Exception('No cache found. Make sure you have the data in the data folder and have run the associated buildCache.py script')
+
+
+from flask import Flask, jsonify, render_template, redirect
 
 app = Flask(__name__)
 
 @app.route("/")
 def home():
-    return None
+    return render_template("index.html")
+
+
+def getUserObject(userID):
+    if userID in congress:
+        userObj = cache[userID]
+    else:
+        userObj = {}
+    return userObj
 
 @app.route("/user/<userID>")
 def giveUser(userID):
-    try:
-        id = int(userID)
-    except:
-        None
-    out = {
-        'id':userID,
-        'friends':list(graph.getFriends(id)),
-        'followers':list(graph.getFollowers(id))
-    }
+    userID = congress[randint(0,len(congress)-1)]
+    out = getUserObject(userID)
     return jsonify(out)
 
 if __name__ == '__main__':

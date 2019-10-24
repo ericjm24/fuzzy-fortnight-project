@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+    <meta charset="utf-8">
+    <link href="{{ url_for('static', filename='css/normalize.css') }}" type="text/css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/bootstrap.css') }}" type="text/css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/style.css') }}" type="text/css" rel="stylesheet">
+</head>
+<body>
+    <button class="button" id="doit">Button!</button>
+    <div class="network" id="cy" style="min-width:500px;min-height:500px"></div>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.9.4/cytoscape.min.js"></script>
+    <script src="{{ url_for('static', filename='js/logic.js') }}"></script>
+<body>
+</html>
