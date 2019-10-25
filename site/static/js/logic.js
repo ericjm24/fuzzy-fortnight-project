@@ -58,3 +58,5 @@ let buildGraph = function(data){
 butt.onclick = function(){
     d3.json("user/75").then(data=>buildGraph(data))
 };
+
+let select = document.getElementById("congressSelect")
