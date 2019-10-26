@@ -2,32 +2,13 @@ let cy = cytoscape({
     container: document.getElementById("cy")
 });
 
-let testNodes = [
-    {group:'nodes', data:{id:'n1'}, position:{x:500*Math.random(),y:500*Math.random()}},
-    {group:'nodes', data:{id:'n2'}, position:{x:500*Math.random(),y:500*Math.random()}},
-    {group:'nodes', data:{id:'n3'}, position:{x:500*Math.random(),y:500*Math.random()}},
-    {group:'nodes', data:{id:'n4'}, position:{x:500*Math.random(),y:500*Math.random()}},
-    {group:'nodes', data:{id:'n5'}, position:{x:500*Math.random(),y:500*Math.random()}},
-];
-
-let testEdges = [
-    {group:'edges', data:{id:'e01', source:'n1', target:'n2'}},
-    {group:'edges', data:{id:'e02', source:'n1', target:'n3'}},
-    {group:'edges', data:{id:'e03', source:'n1', target:'n4'}},
-    {group:'edges', data:{id:'e04', source:'n1', target:'n5'}},
-    {group:'edges', data:{id:'e05', source:'n2', target:'n3'}},
-    {group:'edges', data:{id:'e06', source:'n2', target:'n4'}},
-    {group:'edges', data:{id:'e07', source:'n2', target:'n5'}},
-    {group:'edges', data:{id:'e08', source:'n3', target:'n3'}},
-    {group:'edges', data:{id:'e09', source:'n3', target:'n5'}},
-    {group:'edges', data:{id:'e10', source:'n4', target:'n5'}},
-];
-
 /*let nod = cy.add(testNodes);
 let ed = cy.add(testEdges);*/
 
 let butt = document.getElementById("doit");
-
+var summaryX = [];
+var summaryY = [];
+var summaryC = [];
 let centerPos = {x:300, y:300}
 
 let buildGraph = function(data){
@@ -39,8 +20,7 @@ let buildGraph = function(data){
         let out = {
             group:'nodes',
             data:{id:d.userID},
-            position:{x:500*Math.random(),y:500*Math.random()},
-            color:d.color
+            position:{x:500*Math.random(),y:500*Math.random()}
         };
         return out
     });
@@ -54,12 +34,52 @@ let buildGraph = function(data){
     });
     cy.add(sideNodes);
     cy.add(edges);
+
     let plotdata = {
-        x:data.connectionList.map(d=>`${d.userID}`),
+        x:data.connectionList.map(d=>`TID ${d.userID}`),
         y:data.connectionList.map(d=>d.weight),
+        marker:{
+            color:data.connectionList.map(d=>d.color)
+        },
         type:'bar'
     };
-    Plotly.newPlot('barplot', [plotdata]);
+
+    let layout = {
+        title:{text:`Weight of Twitter Connections for ID ${data.userID}`,
+            size:24},
+        yaxis:{title:{text:"Weight"}}
+
+    }
+    Plotly.newPlot('barplot', [plotdata], layout);
+    let bInArray = false
+    for (let x in summaryX){
+        if (x.userID == data.userID){bInArray=true}
+    };
+    if (bInArray == false){
+        summaryX.push(data.userID);
+        weight = 0;
+        total = 0;
+        for (let c of data.connectionList){
+            total += c.weight
+            if (c.color == "red"){weight += c.weight} else if (c.color == "blue"){weight += -c.weight};
+        };
+        if (total==0){total=1};
+        summaryY.push(weight/total);
+        summaryC.push(data.color)
+        let summaryData = {
+            x:summaryX.map(x=>`ID ${x}`),
+            y:summaryY,
+            marker:{color:summaryC},
+            type:'bar'
+        }
+        let layour = {
+            title:{
+                text:"Summary of congress",
+                size:24
+            }
+        }
+        Plotly.newPlot('totalplot', [summaryData], layour)
+    }
 }
 
 let lili = document.getElementsByClassName("congressmember")
