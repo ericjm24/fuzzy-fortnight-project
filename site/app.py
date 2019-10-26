@@ -14,13 +14,6 @@ except:
 
 from flask import Flask, jsonify, render_template, redirect
 
-app = Flask(__name__)
-
-@app.route("/")
-def home():
-    return render_template("index.html")
-
-
 def getUserObject(userID):
     if userID in congress:
         userObj = cache[userID]
@@ -28,9 +21,20 @@ def getUserObject(userID):
         userObj = {}
     return userObj
 
+app = Flask(__name__)
+
+@app.route("/")
+def home():
+    data = []
+    for c in congress:
+        temp = getUserObject(c)
+        data.append({"id":temp["userID"], 'color':temp["color"]})
+    return render_template("index.html", congressmembers = data)
+
+
+
 @app.route("/user/<userID>")
 def giveUser(userID):
-    userID = congress[randint(0,len(congress)-1)]
     out = getUserObject(userID)
     return jsonify(out)
 

@@ -33,13 +33,14 @@ let centerPos = {x:300, y:300}
 let buildGraph = function(data){
     console.log(data);
     cy.remove(cy.nodes());
-    let mainNode = {group:'nodes', data:{id:data.userID}, position:centerPos};
+    let mainNode = {group:'nodes', data:{id:data.userID}, position:centerPos, color:data.color};
     cy.add([mainNode]);
     let sideNodes = data.connectionList.map(d=>{
         let out = {
             group:'nodes',
             data:{id:d.userID},
-            position:{x:500*Math.random(),y:500*Math.random()}
+            position:{x:500*Math.random(),y:500*Math.random()},
+            color:d.color
         };
         return out
     });
@@ -53,10 +54,18 @@ let buildGraph = function(data){
     });
     cy.add(sideNodes);
     cy.add(edges);
+    let plotdata = {
+        x:data.connectionList.map(d=>`${d.userID}`),
+        y:data.connectionList.map(d=>d.weight),
+        type:'bar'
+    };
+    Plotly.newPlot('barplot', [plotdata]);
 }
 
-butt.onclick = function(){
-    d3.json("user/75").then(data=>buildGraph(data))
-};
+let lili = document.getElementsByClassName("congressmember")
 
-let select = document.getElementById("congressSelect")
+for (let n of lili){
+    n.onclick = function(){
+        d3.json("user/" + n.id).then(data=>buildGraph(data))
+    };
+};

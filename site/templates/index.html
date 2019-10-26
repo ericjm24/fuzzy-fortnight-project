@@ -7,10 +7,25 @@
     <link href="{{ url_for('static', filename='css/style.css') }}" type="text/css" rel="stylesheet">
 </head>
 <body>
-    <button class="button" id="doit">Button!</button>
-    <div class="network" id="cy" style="min-width:500px;min-height:500px"></div>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-2" id="sidebar">
+                <ul>
+                    {% for item in congressmembers %}
+                    <li style="background-color:{{item['color']}}"><span class="congressmember" id="{{item['id']}}">{{item["id"]}}</span></li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <div class="col-10" id="mainDocument">
+                <div class="network" id="cy" style="min-width:800px;min-height:800px"></div>
+                <div class="plot" id="barplot" style="min-width:800px;min-height:800px"</div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://d3js.org/d3.v5.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.9.4/cytoscape.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <script src="{{ url_for('static', filename='js/logic.js') }}"></script>
 <body>
 </html>
