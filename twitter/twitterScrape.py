@@ -86,4 +86,4 @@ while True:
         print(response)
         has_data.append(user.id)
     except:
-        time.sleep(300)
+        time.sleep(60)
