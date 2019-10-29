@@ -84,7 +84,7 @@ while True:
         response = client.put_item(TableName="currentTwitter", Item=out)
         print(response)
         has_data.append(user.id)
-        with open(has_data_file, "r") as file:
+        with open(has_data_file, "w") as file:
             np_has_data = np.array(has_data, dtype=np.uint32)
             np_has_data.tofile(file)
     except:
