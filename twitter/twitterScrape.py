@@ -7,7 +7,7 @@ import time
 
 auth = auth = tweepy.AppAuthHandler(tw_key, tw_secret)
 api = tweepy.API(auth)
-
+has_data_file = "data/has_data"
 twitterID = np.dtype([
     ("id", np.uint32),
     ("followers", np.uint32),
@@ -21,8 +21,7 @@ file.close()
 numUsers = len(users_data)
 
 try:
-    filename = "data/has_data"
-    file = open(filename, "r")
+    file = open(has_data_file, "r")
     has_data = list(np.fromfile(file, np.uint32, count=-1))
     file.close()
 except:
@@ -85,5 +84,8 @@ while True:
         response = client.put_item(TableName="currentTwitter", Item=out)
         print(response)
         has_data.append(user.id)
+        with open(has_data_file, "r") as file:
+            np_has_data = np.array(has_data, dtype=np.uint32)
+            np_has_data.tofile(file)
     except:
         time.sleep(60)
