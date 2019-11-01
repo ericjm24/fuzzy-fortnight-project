@@ -6,6 +6,8 @@ from random import randint
 import time
 import json
 
+RUNTIME = 600
+
 auth = auth = tweepy.AppAuthHandler(tw_key, tw_secret)
 api = tweepy.API(auth)
 has_data_file = "data/has_data"
@@ -40,7 +42,11 @@ def limit_handled(cursor):
             print("Hit rate limit. Waiting...\n")
             time.sleep(15 * 60)
 
+t0 = time.time()
 while True:
+    t1 = time.time()
+    if (t1-t0) > RUNTIME:
+        break
     x = randint(1,numUsers)
     user = users_data[x-1]
     if user["id"] in has_data:
@@ -114,6 +120,5 @@ while True:
         with open(has_data_file, "w") as file:
             np_has_data = np.array(has_data, dtype=np.uint32)
             np_has_data.tofile(file)
-        break
     except:
-        pass#time.sleep(60)
+        time.sleep(60)
