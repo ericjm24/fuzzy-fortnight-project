@@ -8,6 +8,7 @@ import time
 auth = auth = tweepy.AppAuthHandler(tw_key, tw_secret)
 api = tweepy.API(auth)
 has_data_file = "data/has_data"
+save_file = "data/data_store.json"
 twitterID = np.dtype([
     ("id", np.uint32),
     ("followers", np.uint32),
@@ -87,5 +88,6 @@ while True:
         with open(has_data_file, "w") as file:
             np_has_data = np.array(has_data, dtype=np.uint32)
             np_has_data.tofile(file)
+        break
     except:
         time.sleep(60)

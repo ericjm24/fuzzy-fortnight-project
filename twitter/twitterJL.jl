@@ -1,6 +1,7 @@
 indexFile = "data/twitter_index"
 friendsFile = "data/friends_small"
 followersFile = "data/followers_small"
+maxBuff = Int64(125000000)
 
 struct twitterID
     id::UInt32
@@ -49,6 +50,90 @@ function readFriends(user::twitterID)
     read!(file, output)
     close(file)
     return output
+end
+
+function sparseAdjacencyMultiplyMV(M::Vector{UInt32}, V::Vector)
+    out = Vector{typeof(V[1])}(undef, length(V))
+    for t = 1:length(out)
+        out[t]=0
+    end
+    ind = M[1]
+    k = 2
+    temp = Float64(0)
+    L = length(M)
+    while k <= L
+        a = M[k]
+        if a != 0
+            temp += V[a]
+            k += 1
+        else
+            out[ind] = temp
+            k += 1
+            if k > L
+                break
+            end
+            temp = 0
+            ind = M[k]
+            k += 1
+        end
+    end
+    return out
+end
+
+function friendsMultiplyMV(users::Vector{twitterID}, V::Vector{Float64})
+    file = open(friendsFile, "r")
+    out = Vector{typeof(V[1])}(undef, length(V))
+    buffer = Vector{UInt32}(undef, maxBuff)
+    for t = 1:length(V)
+        out[t]=0
+    end
+    k = 1
+    j = 1
+    L = length(users)
+    while true
+        numUsers = 0
+        numFriends = 0
+        while true
+            theseFriends = users[k].friends + 2
+            if theseFriends > maxBuff
+                error("Need a larger buffer to do this multiplication fast")
+            elseif k > L
+                buffer = Vector{UInt32}(undef, numFriends)
+                break
+            elseif (numFriends + theseFriends) > maxBuff
+                break
+            else
+                k += 1
+                numFriends += theseFriends
+                numUsers += 1
+            end
+        end
+        curPos = position(file)
+        read!(file, buffer)
+        seek(file, curPos + (numFriends*4))
+        s = 2
+        temp = 0
+        while s <= numFriends
+            a = buffer[s]
+            if a != 0
+                temp += V[s]
+                s += 1
+            else
+                out[j] = temp
+                s += 2
+                j += 1
+                temp = 0
+                if s > numFriends
+                    break
+                end
+            end
+        end
+        if k > L
+            break
+        end
+    end
+    close(file)
+    return out
 end
 
 function findUser(id::UInt32, userArray::Vector{twitterID})
