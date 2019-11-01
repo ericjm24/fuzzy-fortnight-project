@@ -4,6 +4,7 @@ import numpy as np
 import boto3
 from random import randint
 import time
+import json
 
 auth = auth = tweepy.AppAuthHandler(tw_key, tw_secret)
 api = tweepy.API(auth)
@@ -29,7 +30,7 @@ except:
     has_data = []
 
 
-client = boto3.client('dynamodb', region_name='us-west-2')
+#client = boto3.client('dynamodb', region_name='us-west-2')
 
 def limit_handled(cursor):
     while True:
@@ -62,7 +63,7 @@ while True:
             for page in tweepy.Cursor(api.followers_ids, user_id = user.id).pages():
                 followers += page
 
-        out = {
+        """out = {
             "userID":{"N":user.id_str},
             "friends_count":{"N":str(user.friends_count)},
             "followers_count":{"N":str(user.followers_count)},
@@ -81,13 +82,38 @@ while True:
         if len(followers) >= 1:
             out["followers"] = {"NS":[str(y) for y in followers]}
 
+        print(out)"""
+
+        out = {'userID':user.id_str,
+            'friends_count':user.friends_count,
+            'followers_count':user.followers_count}
+        if user.location:
+            out['location'] = user.location
+        if user.name:
+            out['name'] = user.name
+        if user.screen_name:
+            out['screen_name'] = user.screen_name
+        if user.description:
+            out['description'] = user.description
+        if len(friends) >= 1:
+            out['friends'] = [str(y) for y in friends]
+        if len(followers) >= 1:
+            out['followers'] = [str(y) for y in followers]
+        #response = client.put_item(TableName="currentTwitter", Item=out)
         print(out)
-        response = client.put_item(TableName="currentTwitter", Item=out)
-        print(response)
+        try:
+            with open(save_file, "r") as file:
+                twits = json.load(file)
+        except FileNotFoundError:
+            twits = []
+        twits.append(out)
+        with open(save_file, "w") as file:
+            json.dump(twits, file)
+        #print(response)
         has_data.append(user.id)
         with open(has_data_file, "w") as file:
             np_has_data = np.array(has_data, dtype=np.uint32)
             np_has_data.tofile(file)
         break
     except:
-        time.sleep(60)
+        pass#time.sleep(60)
