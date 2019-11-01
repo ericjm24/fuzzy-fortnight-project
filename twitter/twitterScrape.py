@@ -6,7 +6,7 @@ from random import randint
 import time
 import json
 
-RUNTIME = 600
+RUNTIME = 60*60*24 #1 day in seconds
 
 auth = auth = tweepy.AppAuthHandler(tw_key, tw_secret)
 api = tweepy.API(auth)
