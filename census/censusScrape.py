@@ -33,3 +33,19 @@ class census():
         response = requests.get(url)
         if response.status_code == 200:
             return response.json()
+
+    def get_data_from_coord(self, coord, data_names={}):
+        addr = self.get_FIPS_from_coord(coord)
+        url = "https://api.census.gov/data/2012/acs/acs5?get=NAME"
+        for s in data_names.keys():
+            url += ',' + s
+        url += f"&for=tract:{addr['tract']}"
+        url += f"&in=county:{addr['county']}%20state:{addr['state']}"
+        url += f"&key={self.api_key}"
+        response=requests.get(url)
+        if response.status_code == 200:
+            dat = response.json()
+            for t in range(len(dat[0])):
+                if dat[0][t] in list(data_names.keys()):
+                    dat[0][t] = data_names[dat[0][t]]
+            return dat
