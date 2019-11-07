@@ -1,3 +1,5 @@
 Run this command to make AWS do 48 hours of twitter scraping
 
-aws ssm send-command --document-name "AWS-RunShellScript" --document-version "1" --targets '[{"Key":"InstanceIds","Values":["i-086a7e8fea4abb0e3"]}]' --parameters '{"workingDirectory":["fuzzy-fortnight-project/twitter/"],"executionTimeout":["172800"],"commands":["python3 twitterScrape.py"]}' --timeout-seconds 600 --max-concurrency "50" --max-errors "0" --region us-west-1
+aws ssm send-command --document-name "AWS-RunShellScript" --document-version "1" --targets '[{"Key":"InstanceIds","Values":["i-086a7e8fea4abb0e3"]}]' --parameters '"executionTimeout":["172800"],"commands":["cd /home/ec2-user/fuzzy-fortnight-project/twitter && python3 twitterScrape.py"]}' --timeout-seconds 600 --max-concurrency "50" --max-errors "0" --region us-west-1
+
+cd /home/ec2-user/fuzzy-fortnight-project/twitter && python3 twitterScrape.py
