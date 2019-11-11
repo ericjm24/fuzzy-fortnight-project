@@ -1,4 +1,5 @@
 import requests
+from scipy.interpolate import PchipInterpolator
 
 class census():
     def __init__(self, api_key):
@@ -34,9 +35,9 @@ class census():
         if response.status_code == 200:
             return response.json()
 
-    def get_data_from_coord(self, coord, data_names={}):
-        addr = self.get_FIPS_from_coord(coord)
-        url = "https://api.census.gov/data/2012/acs/acs5?get=NAME"
+    def get_data_from_FIPS(self, addr, year=2010, data_names={}):
+        url = "https://api.census.gov/data/"
+        url += str(int(year)) + "/acs/acs5?get=NAME"
         for s in data_names.keys():
             url += ',' + s
         url += f"&for=tract:{addr['tract']}"
@@ -45,7 +46,35 @@ class census():
         response=requests.get(url)
         if response.status_code == 200:
             dat = response.json()
+            outDict = {}
             for t in range(len(dat[0])):
                 if dat[0][t] in list(data_names.keys()):
-                    dat[0][t] = data_names[dat[0][t]]
-            return dat
+                    outDict[data_names[dat[0][t]]] = dat[1][t]
+                else:
+                    outDict[dat[0][t]] = dat[1][t]
+            return outDict
+        return None
+
+    def get_data_from_coord(self, coord, year = 2010, data_names={}):
+        addr = self.get_FIPS_from_coord(coord)
+        return self.get_data_from_FIPS(addr, year, data_names)
+
+    def get_data_all_years_from_coord(self, coord, data_names={}):
+        addr = self.get_FIPS_from_coord(coord)
+        dat = {2010:self.get_data_from_FIPS(addr, 2010, data_names)}
+        for year in range(2010,2018):
+            temp = self.get_data_from_FIPS(addr, year, data_names)
+            dat[year] = temp
+        return dat
+
+    def get_data_spline_from_coord(self, coord, data_names):
+        dat = self.get_data_all_years_from_coord(coord, data_names)
+        out = dat[2010]
+        for t in data_names.values():
+            x = range(2010, 2018)
+            y = [dat[z][t] for z in x]
+            try:
+                out[t] = PchipInterpolator(x,y)
+            except ValueError:
+                out[t] = None
+        return out
