@@ -44,9 +44,9 @@ def politician_scrape(pol_id):
             followers += next(fol_cur)
             k += 1
             if k < num_mins:
-                time.sleep(60)
+                sleep(60)
         except:
-            time.sleep(60)
+            sleep(60)
 
     out = {
         'id':pol.id,
