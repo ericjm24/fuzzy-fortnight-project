@@ -27,21 +27,26 @@ def politician_scrape(pol_id):
     except:
         return None
     num_mins = ceil(max(pol.followers_count, pol.friends_count)/5000)
+    num_mins_fol = ceil(pol.followers_count/5000)
+    num_mins_fr = ceil(pol.friends_count/5000)
     k = 0
     statuses = []
     followers = []
     friends=[]
     fol_cur = tweepy.Cursor(api.followers_ids,id=pol.id_str, count=5000).pages()
     fr_cur = tweepy.Cursor(api.friends_ids,id=pol.id_str, count = 5000).pages()
-    stat_cur = tweepy.Cursor(api.user_timeline,id=pol.id_str, tweet_mode="extended", count=200).pages()
+    try:
+        stat = pol.user_timeline(tweet_mode="extended", count=200)
+        for t in stat:
+            t.pop('user')
+    except:
+        stat = []
     while k < num_mins:
         try:
-            t_stat = [p._json for p in next(stat_cur)]
-            for t in t_stat:
-                t.pop('user')
-            statuses += t_stat
-            friends += next(fr_cur)
-            followers += next(fol_cur)
+            if k < num_mins_fr:
+                friends += next(fr_cur)
+            if k < num_mins_fol:
+                followers += next(fol_cur)
             k += 1
             if k < num_mins:
                 sleep(60)
@@ -60,7 +65,7 @@ def politician_scrape(pol_id):
         'created_at':pol.created_at.strftime("%Y/%m/%d"),
         'friends_ids':friends,
         'followers_ids':followers,
-        'statuses':statuses
+        'statuses':stat
     }
     return out
 
@@ -70,6 +75,7 @@ for id in politician_ids:
     next_pol = politician_scrape(id)
     if next_pol:
         has_data.append(next_pol["id_str"])
+        print(next_pol["id_str"]+'\n')
         with open(json_data_file, "a") as f:
             json.dump(next_pol, f)
             f.write('\n')
