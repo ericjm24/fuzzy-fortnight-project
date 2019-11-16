@@ -72,3 +72,4 @@ for id in politician_ids:
         has_data.append(next_pol["id_str"])
         with open(json_data_file, "a") as f:
             json.dump(next_pol, f)
+            f.write('\n')
