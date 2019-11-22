@@ -3,7 +3,7 @@ from config import tw_key, tw_secret
 import pandas as pd
 import json
 auth = tweepy.AppAuthHandler(tw_key, tw_secret)
-api = tweepy.API(auth)
+api = tweepy.API(auth, wait_on_rate_limit=True)
 politician_ids = []
 with open("data/politicians_list", "r") as f:
     for line in f:
@@ -11,48 +11,29 @@ with open("data/politicians_list", "r") as f:
 
 has_data = []
 try:
-    with open("data/politicians_has_data","r") as f:
+    with open("data/pol_json_data","r") as f:
         for line in f:
-            has_data.append(line.strip())
+            pol_obj = json.loads(line)
+            has_data.append(pol_obj["id_str"])
 except:
     has_data = []
 json_data_file = "data/pol_json_data"
+print("Found data on " + str(len(has_data)) + " politicians so far.\n")
 
 def politician_scrape(pol_id):
-    from math import ceil
-    from time import sleep
     from datetime import datetime
     try:
-        pol = api.get_user(id=pol_id)
+        pol = api.get_user(user_id=pol_id)
+        print("Getting data on " + pol.name + ". Followers: " + str(pol.followers_count))
     except:
+        print("Getting data on id " + pol_id + " failed")
         return None
-    num_mins = ceil(max(pol.followers_count, pol.friends_count)/5000)
-    num_mins_fol = ceil(pol.followers_count/5000)
-    num_mins_fr = ceil(pol.friends_count/5000)
-    k = 0
-    statuses = []
     followers = []
     friends=[]
-    fol_cur = tweepy.Cursor(api.followers_ids,id=pol.id_str, count=5000).pages()
-    fr_cur = tweepy.Cursor(api.friends_ids,id=pol.id_str, count = 5000).pages()
-    try:
-        stat = pol.user_timeline(tweet_mode="extended", count=200)
-        for t in stat:
-            t.pop('user')
-    except:
-        stat = []
-    while k < num_mins:
-        try:
-            if k < num_mins_fr:
-                friends += next(fr_cur)
-            if k < num_mins_fol:
-                followers += next(fol_cur)
-            k += 1
-            if k < num_mins:
-                sleep(60)
-        except:
-            sleep(60)
-
+    for page_fol in tweepy.Cursor(api.followers_ids,id=pol.id_str, count=5000).pages():
+        followers += page_fol
+    for page_fr in tweepy.Cursor(api.friends_ids,id=pol.id_str, count = 5000).pages():
+        friends += page_fr
     out = {
         'id':pol.id,
         'id_str':pol.id_str,
@@ -65,8 +46,8 @@ def politician_scrape(pol_id):
         'created_at':pol.created_at.strftime("%Y/%m/%d"),
         'friends_ids':friends,
         'followers_ids':followers,
-        'statuses':stat
     }
+    print("Found " + str(out["followers_count"]) + " followers\n")
     return out
 
 for id in politician_ids:

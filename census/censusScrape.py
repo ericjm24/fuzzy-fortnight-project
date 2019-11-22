@@ -1,6 +1,8 @@
 import requests
 from scipy.interpolate import PchipInterpolator
-
+import pandas as pd
+tracts = pd.read_csv("2019_Gaz_tracts_national.txt", delimiter='\t', dtype=str).groupby(by="USPS")
+codes = {state[0]:state[1] for state in zip(tracts.groups.keys(), [x[:2] for x in tracts.head(1)['GEOID'].values])}
 class census():
     def __init__(self, api_key):
         self.api_key = api_key
@@ -27,7 +29,7 @@ class census():
 
     def get_population_from_coord(self, coord):
         addr = self.get_FIPS_from_coord(coord)
-        url = "https://api.census.gov/data/2012/acs/acs5?get=NAME,B00001_001E&for="
+        url = "https://api.census.gov/data/2012/acs/acs5/profile?get=NAME,B00001_001E&for="
         url += f"tract:{addr['tract']}"
         url += f"&in=county:{addr['county']}%20state:{addr['state']}"
         url += f"&key={self.api_key}"
@@ -37,7 +39,7 @@ class census():
 
     def get_data_from_FIPS(self, addr, year=2010, data_names={}):
         url = "https://api.census.gov/data/"
-        url += str(int(year)) + "/acs/acs5?get=NAME"
+        url += str(int(year)) + "/acs/acs5/profile?get=NAME"
         for s in data_names.keys():
             url += ',' + s
         url += f"&for=tract:{addr['tract']}"
@@ -46,6 +48,26 @@ class census():
         response=requests.get(url)
         if response.status_code == 200:
             dat = response.json()
+            outDict = {}
+            for t in range(len(dat[0])):
+                if dat[0][t] in list(data_names.keys()):
+                    outDict[data_names[dat[0][t]]] = dat[1][t]
+                else:
+                    outDict[dat[0][t]] = dat[1][t]
+            return outDict
+        return None
+
+    def get_tract_data_for_state(self, state='CA', year=2010, data_names={}):
+        url = url = "https://api.census.gov/data/"
+        url += str(int(year)) + "/acs/acs5/profile?get=NAME"
+        for s in data_names.keys():
+            url += ',' + s
+        url += "&for=tract:*"
+        url += f"&in=state:{codes[state]}"
+        response=requests.get(url)
+        if response.status_code == 200:
+            dat = response.json()
+            return dat
             outDict = {}
             for t in range(len(dat[0])):
                 if dat[0][t] in list(data_names.keys()):
