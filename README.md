@@ -16,6 +16,9 @@ Project Question:
 
 /ML: machine learning algorithms. Will utilize either boosted decision trees or artificial neural networks in tensorflow to provide complex predictions based on demographic information and Twitter friends/followers
 
+/site: Container for all html, css, js, etc for the github site for the project.
+
+
 Data Sources:
 
 Social Media
