@@ -1,4 +1,4 @@
-#Twitter Folder
+#Twitter Folder#
 
 This folder contains all the code used to perform a scrape on Twitter and calculations of data pulled from it. Note that all data is reserved on private computers instead of being made publically available. Please download data directly from their sources if you wish to run this code, and leave it in a /data/ folder.
 
