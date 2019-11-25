@@ -1,8 +1,101 @@
 import requests
-from scipy.interpolate import PchipInterpolator
-import pandas as pd
-tracts = pd.read_csv("2019_Gaz_tracts_national.txt", delimiter='\t', dtype=str).groupby(by="USPS")
-codes = {state[0]:state[1] for state in zip(tracts.groups.keys(), [x[:2] for x in tracts.head(1)['GEOID'].values])}
+import csv
+
+cit_file = "data/uscities.csv"
+cities = []
+with open(cit_file, "r") as f:
+    k = 0
+    for line in f:
+        if k == 0:
+            k=1
+            continue
+        
+        row = [x.replace('\"', '') for x in line.split(',')]
+        try:
+            temp = {
+                'name':row[0],
+                'state':row[2],
+                'longitude':float(row[8]),
+                'latitude':float(row[9]),
+                'population':int(round(float(row[10]))),
+                'density':float(row[11])
+            }
+            cities.append(temp)
+        except:
+            temp = {
+                'name':', '.join(row[0:2]),
+                'state':row[4],
+                'longitude':row[10],
+                'latitude':row[11],
+                'population':int(round(float(row[12]))),
+                'density':float(row[13])
+            }
+            cities.append(temp)
+
+city_names = {}
+for c in cities:
+    if c['name'] in city_names.keys():
+        city_names[c['name']].append(c)
+    else:
+        city_names[c['name']] = [c]
+
+abbr_to_states = {
+        'AK': 'Alaska',
+        'AL': 'Alabama',
+        'AR': 'Arkansas',
+        'AZ': 'Arizona',
+        'CA': 'California',
+        'CO': 'Colorado',
+        'CT': 'Connecticut',
+        'DC': 'District of Columbia',
+        'DE': 'Delaware',
+        'FL': 'Florida',
+        'GA': 'Georgia',
+        'HI': 'Hawaii',
+        'IA': 'Iowa',
+        'ID': 'Idaho',
+        'IL': 'Illinois',
+        'IN': 'Indiana',
+        'KS': 'Kansas',
+        'KY': 'Kentucky',
+        'LA': 'Louisiana',
+        'MA': 'Massachusetts',
+        'MD': 'Maryland',
+        'ME': 'Maine',
+        'MI': 'Michigan',
+        'MN': 'Minnesota',
+        'MO': 'Missouri',
+        'MS': 'Mississippi',
+        'MT': 'Montana',
+        'NC': 'North Carolina',
+        'ND': 'North Dakota',
+        'NE': 'Nebraska',
+        'NH': 'New Hampshire',
+        'NJ': 'New Jersey',
+        'NM': 'New Mexico',
+        'NV': 'Nevada',
+        'NY': 'New York',
+        'OH': 'Ohio',
+        'OK': 'Oklahoma',
+        'OR': 'Oregon',
+        'PA': 'Pennsylvania',
+        'RI': 'Rhode Island',
+        'SC': 'South Carolina',
+        'SD': 'South Dakota',
+        'TN': 'Tennessee',
+        'TX': 'Texas',
+        'UT': 'Utah',
+        'VA': 'Virginia',
+        'VI': 'Virgin Islands',
+        'VT': 'Vermont',
+        'WA': 'Washington',
+        'WI': 'Wisconsin',
+        'WV': 'West Virginia',
+        'WY': 'Wyoming'
+}
+
+state_to_abbr = {v.upper():k for k,v in abbr_to_states.items()}
+
 class census():
     def __init__(self, api_key):
         self.api_key = api_key
@@ -64,6 +157,27 @@ class census():
             url += ',' + s
         url += "&for=tract:*"
         url += f"&in=state:{codes[state]}"
+        url += f"&key={self.api_key}"
+        response=requests.get(url)
+        if response.status_code == 200:
+            dat = response.json()
+            return dat
+            outDict = {}
+            for t in range(len(dat[0])):
+                if dat[0][t] in list(data_names.keys()):
+                    outDict[data_names[dat[0][t]]] = dat[1][t]
+                else:
+                    outDict[dat[0][t]] = dat[1][t]
+            return outDict
+        return None
+
+    def get_place_data_all(self, year=2010, data_names={}):
+        url = url = "https://api.census.gov/data/"
+        url += str(int(year)) + "/acs/acs5/profile?get=NAME"
+        for s in data_names.keys():
+            url += ',' + s
+        url += "&for=place:*&in=state:*"
+        url += f"&key={self.api_key}"
         response=requests.get(url)
         if response.status_code == 200:
             dat = response.json()
