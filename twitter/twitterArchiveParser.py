@@ -209,12 +209,12 @@ class twitterArchiveParser():
                 Tweets are json objects and can be accessed like dictionaries in python
         """
         if self._num_threads < 1:
-            save_file = open(self.save_location, "w", encoding='utf-8')
+            save_file = open(self.save_location, "a", encoding='utf-8')
             writer = csv.writer(save_file, delimiter=',')
 
             self._parse_archive_minute_list(func, self.file_list, writer, *args)
         else:
-            save_file = SafeWriter(self.save_location, "w", encoding='utf-8')
+            save_file = SafeWriter(self.save_location, "a", encoding='utf-8')
             f_lists = self._split_files_multi()
             thr_list = []
             for f_list in f_lists:
@@ -224,3 +224,7 @@ class twitterArchiveParser():
             for thr in thr_list:
                 thr.join()
         save_file.close()
+    
+    def write_header(self, header_string):
+        with open(self.save_location, "w", encoding='utf-8') as f:
+            f.write(header_string + '\n')
